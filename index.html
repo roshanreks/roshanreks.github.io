@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ODDHOUR — briefs only after midnight</title>
+<meta name="description" content="ODDHOUR is a one-night landing page studio. You bring the offer. We make the page misbehave." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,460;9..144,620;9..144,760&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@360;520;680&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #14110e;
+    --paper: #f3ecdf;
+    --muted: #8a8174;
+    --line: rgba(20,17,14,.14);
+    --hot: #ff4d1c;
+    --acid: #d6ff3f;
+    --sea: #1f6f68;
+    --shadow: 0 18px 50px rgba(20,17,14,.12);
+    --sans: "Outfit", sans-serif;
+    --serif: "Fraunces", serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 360;
+    letter-spacing: -.01em;
+    cursor: none;
+    overflow-x: hidden;
+  }
+  a, button { cursor: none; }
+  ::selection { background: var(--hot); color: white; }
+
+  .cursor {
+    position: fixed; z-index: 80; pointer-events: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--hot); mix-blend-mode: multiply;
+    transform: translate(-50%, -50%);
+    transition: width .2s, height .2s, background .2s;
+  }
+  .cursor.hot { width: 54px; height: 54px; background: transparent; border: 1.5px solid var(--ink); mix-blend-mode: normal; }
+  @media (pointer: coarse) { .cursor { display: none; } body, a, button { cursor: auto; } }
+
+  nav {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px;
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .mark { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; font-weight: 500; }
+  .mark span { color: var(--hot); }
+  .nav-mid { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .pill {
+    border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+    border-radius: 999px; padding: 10px 16px; font-family: var(--sans);
+    font-size: 14px; font-weight: 520; text-decoration: none;
+  }
+  .pill:hover { background: var(--hot); border-color: var(--hot); }
+
+  .hero { display: grid; grid-template-columns: 1.3fr .7fr; min-height: calc(100vh - 64px); }
+  .hero-copy { padding: 54px 28px 40px 36px; position: relative; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 22px;
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 620; font-size: clamp(64px, 9vw, 128px);
+    line-height: .84; letter-spacing: -.045em; margin: 0 0 22px;
+  }
+  h1 em { font-style: italic; font-weight: 460; color: var(--hot); }
+  .lede { max-width: 460px; font-size: 19px; line-height: 1.35; margin: 0 0 28px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .ghost {
+    border: 1px solid var(--ink); background: transparent; color: var(--ink);
+    border-radius: 999px; padding: 12px 16px; font-size: 14px; font-weight: 520;
+  }
+  .ghost:hover { background: var(--acid); }
+  .fine { margin-top: 28px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  .stage {
+    border-left: 1px solid var(--line);
+    position: relative; overflow: hidden;
+    background: #1b1713;
+    color: var(--paper);
+    min-height: 520px;
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .stage-card {
+    position: absolute; left: 22px; right: 22px; bottom: 22px;
+    background: rgba(243,236,223,.94); color: var(--ink);
+    border-radius: 18px; padding: 16px 16px 14px;
+    box-shadow: var(--shadow);
+  }
+  .stage-card strong { font-family: var(--serif); font-size: 26px; font-weight: 620; display: block; letter-spacing: -.03em; }
+  .stage-card p { margin: 6px 0 12px; font-size: 14px; line-height: 1.35; }
+  .moods { display: flex; gap: 8px; }
+  .mood {
+    flex: 1; border: 1px solid var(--line); background: white; border-radius: 12px;
+    padding: 8px 6px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em;
+  }
+  .mood.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .marquee {
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    overflow: hidden; padding: 12px 0; background: var(--acid);
+  }
+  .track { display: flex; gap: 28px; white-space: nowrap; animation: slide 22s linear infinite; font-family: var(--mono); font-size: 13px; letter-spacing: .08em; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  section { padding: 72px 36px; }
+  .split { display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; align-items: start; }
+  h2 { font-family: var(--serif); font-weight: 620; font-size: clamp(40px, 5vw, 68px); line-height: .9; letter-spacing: -.04em; margin: 0; }
+  .offers { display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .offer {
+    display: grid; grid-template-columns: 72px 1fr auto; gap: 16px; align-items: center;
+    padding: 18px 0; border-bottom: 1px solid var(--line);
+  }
+  .num { font-family: var(--mono); color: var(--hot); font-size: 13px; }
+  .offer h3 { margin: 0; font-size: 22px; font-weight: 520; letter-spacing: -.02em; }
+  .offer p { margin: 4px 0 0; color: #5c564c; font-size: 14px; }
+  .price { font-family: var(--mono); font-size: 13px; }
+
+  .dial-wrap {
+    margin-top: 64px; display: grid; grid-template-columns: 280px 1fr; gap: 36px; align-items: center;
+    background: var(--ink); color: var(--paper); border-radius: 28px; padding: 28px;
+  }
+  .wheel {
+    width: 240px; height: 240px; border-radius: 50%;
+    border: 1px dashed rgba(243,236,223,.35);
+    display: grid; place-items: center; position: relative;
+    margin: 0 auto;
+  }
+  .wheel button {
+    width: 132px; height: 132px; border-radius: 50%; border: 0;
+    background: var(--hot); color: white; font-family: var(--serif);
+    font-size: 28px; font-weight: 620; letter-spacing: -.03em;
+  }
+  .wheel button:active { transform: scale(.96); }
+  .spinning { animation: spin .7s cubic-bezier(.2,.8,.2,1); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .result .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--acid); }
+  .result h3 { font-family: var(--serif); font-size: clamp(32px, 4vw, 52px); line-height: .95; margin: 8px 0 10px; letter-spacing: -.03em; }
+  .result p { margin: 0; max-width: 460px; color: #d9d0c2; }
+
+  .notes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 18px; }
+  .note {
+    border: 1px solid var(--line); border-radius: 18px; padding: 18px; min-height: 160px;
+    background: white;
+  }
+  .note:nth-child(2) { background: var(--hot); color: white; border-color: var(--hot); transform: rotate(-1.5deg); }
+  .note:nth-child(3) { background: var(--sea); color: white; border-color: var(--sea); transform: rotate(1.2deg); }
+  .note b { display: block; font-family: var(--serif); font-size: 28px; font-weight: 620; letter-spacing: -.03em; margin-bottom: 8px; }
+
+  form.book {
+    margin-top: 28px; display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  input[type="email"] {
+    border: 1px solid var(--line); background: white; border-radius: 999px;
+    padding: 12px 16px; font: inherit; min-width: 240px; outline: none;
+  }
+  input:focus { border-color: var(--ink); }
+  .toast { font-family: var(--mono); font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+  footer {
+    padding: 28px 36px 40px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    border-top: 1px solid var(--line); font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .hero, .split, .dial-wrap, .notes { grid-template-columns: 1fr; }
+    .hero-copy, section, footer { padding-left: 18px; padding-right: 18px; }
+    nav { padding: 14px 16px; }
+    .nav-mid { display: none; }
+    .stage { border-left: 0; border-top: 1px solid var(--line); min-height: 460px; }
+    h1 { font-size: 64px; }
+    .offer { grid-template-columns: 42px 1fr; }
+    .price { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<nav>
+  <div class="mark">ODD<span>HOUR</span></div>
+  <div class="nav-mid" id="clock">SURAT · --:--</div>
+  <a class="pill" href="#book">Book a weird hour</a>
+</nav>
+
+<main>
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">New studio · one page · one night</div>
+      <h1>Make the page <em>misbehave.</em></h1>
+      <p class="lede">ODDHOUR builds landing pages that feel like a night market, not a template. You bring the offer. We stay up and ship the thing people actually poke.</p>
+      <div class="row">
+        <a class="pill" href="#spin">Spin a brief</a>
+        <button class="ghost" id="scramble" type="button">Scramble the headline</button>
+      </div>
+      <div class="fine">No decks. No 14-section SaaS graveyard. Just a page with a pulse.</div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="lights"></canvas>
+      <div class="stage-card">
+        <strong id="mood-title">Mango midnight</strong>
+        <p id="mood-copy">Hot type, dark stall, one loud button. For offers that should feel edible.</p>
+        <div class="moods">
+          <button class="mood on" data-mood="mango" type="button">MANGO</button>
+          <button class="mood" data-mood="acid" type="button">ACID</button>
+          <button class="mood" data-mood="sea" type="button">SEA</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="track" id="track"></div>
+  </div>
+
+  <section>
+    <div class="split">
+      <h2>Three hours. Then it is live.</h2>
+      <div class="offers">
+        <div class="offer"><div class="num">01</div><div><h3>The hook</h3><p>One sentence people repeat in the group chat. We write six, you kill five.</p></div><div class="price">hour 1</div></div>
+        <div class="offer"><div class="num">02</div><div><h3>The misbehavior</h3><p>A dial, a scramble, a wheel, a cursor with opinions. Interaction with a job.</p></div><div class="price">hour 2</div></div>
+        <div class="offer"><div class="num">03</div><div><h3>The host</h3><p>Shipped to a real URL before the chai goes cold. Mobile included. Ego not included.</p></div><div class="price">hour 3</div></div>
+      </div>
+    </div>
+
+    <div class="dial-wrap" id="spin">
+      <div class="wheel" id="wheel">
+        <button type="button" id="spinbtn">Spin</button>
+      </div>
+      <div class="result">
+        <div class="kicker">TONIGHT'S BRIEF</div>
+        <h3 id="brief-title">A page that sells the feeling, not the feature list.</h3>
+        <p id="brief-copy">Spin it. Steal the angle. Or send yours and we build that instead.</p>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note"><b>0 templates</b>If it looks like a Framer starter, we start over.</div>
+      <div class="note"><b>1 URL</b>Hosted. Clickable. Ready to drop into an ad.</div>
+      <div class="note"><b>∞ pokes</b>People should want to touch it before they want to buy.</div>
+    </div>
+
+    <div id="book">
+      <h2 style="margin-top:64px;">Leave a weird hour.</h2>
+      <p class="lede">Drop an email. This demo does not mail you. It just proves the button has a spine.</p>
+      <form class="book" id="form">
+        <input type="email" required placeholder="you@nightshift.com" aria-label="Email" />
+        <button class="pill" type="submit">Hold my spot</button>
+      </form>
+      <div class="toast" id="toast"></div>
+    </div>
+  </section>
+</main>
+<footer>
+  <div>ODDHOUR · a new page, hosted on purpose</div>
+  <div id="foot-time">Surat</div>
+</footer>
+<script>
+const cursor = document.getElementById("cursor");
+let cx = 0, cy = 0, tx = 0, ty = 0;
+window.addEventListener("pointermove", (e) => { tx = e.clientX; ty = e.clientY; });
+(function loop() {
+  cx += (tx - cx) * .28; cy += (ty - cy) * .28;
+  cursor.style.left = cx + "px"; cursor.style.top = cy + "px";
+  requestAnimationFrame(loop);
+})();
+document.querySelectorAll("a, button").forEach((el) => {
+  el.addEventListener("pointerenter", () => cursor.classList.add("hot"));
+  el.addEventListener("pointerleave", () => cursor.classList.remove("hot"));
+});
+
+const words = ["NO HERO STOCK", "NO PURPLE GRADIENT", "NO 3 ICON CARDS", "YES TO MISCHIEF", "YES TO ONE LOUD BUTTON", "SHIPPED BEFORE DAWN", "SURAT → ANYWHERE"];
+const track = document.getElementById("track");
+const line = words.concat(words).map((w) => `<span>${w}  ·</span>`).join(" ");
+track.innerHTML = line + line;
+
+const moods = {
+  mango: { hot: "#ff4d1c", acid: "#d6ff3f", sea: "#1f6f68", title: "Mango midnight", copy: "Hot type, dark stall, one loud button. For offers that should feel edible." },
+  acid: { hot: "#111", acid: "#d6ff3f", sea: "#8adf2a", title: "Acid stall", copy: "High contrast, cheap-neon energy, expensive restraint. For launches that should sting." },
+  sea: { hot: "#1f6f68", acid: "#f3ecdf", sea: "#143f3c", title: "Sea after rain", copy: "Quieter, still odd. For consultants who refuse to look like a PDF." }
+};
+document.querySelectorAll(".mood").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const m = moods[btn.dataset.mood];
+    document.documentElement.style.setProperty("--hot", m.hot);
+    document.documentElement.style.setProperty("--acid", m.acid);
+    document.documentElement.style.setProperty("--sea", m.sea);
+    document.getElementById("mood-title").textContent = m.title;
+    document.getElementById("mood-copy").textContent = m.copy;
+    document.querySelectorAll(".mood").forEach((b) => b.classList.toggle("on", b === btn));
+  });
+});
+
+const headlines = [
+  ["Make the page ", "misbehave."],
+  ["Sell the poke, ", "not the PDF."],
+  ["One night. ", "One URL."],
+  ["Boring is ", "a choice."]
+];
+let hi = 0;
+document.getElementById("scramble").addEventListener("click", () => {
+  hi = (hi + 1) % headlines.length;
+  const [a, b] = headlines[hi];
+  document.querySelector("h1").innerHTML = a + "<em>" + b + "</em>";
+});
+
+const briefs = [
+  ["A page that sells the feeling, not the feature list.", "Spin it. Steal the angle. Or send yours and we build that instead."],
+  ["A waitlist that feels like a secret stall.", "Name, one promise, a button that looks slightly illegal."],
+  ["A founder page with zero stock smiles.", "Big type, one story, a calendar link that does not apologize."],
+  ["An offer so specific it scares the wrong people.", "Price on the page. Deadline on the page. Exit for everyone else."],
+  ["A product launch that behaves like a night market.", "Lights, noise, one thing to buy before the shutters drop."]
+];
+const spinbtn = document.getElementById("spinbtn");
+spinbtn.addEventListener("click", () => {
+  const wheel = document.getElementById("wheel");
+  wheel.classList.remove("spinning");
+  void wheel.offsetWidth;
+  wheel.classList.add("spinning");
+  const pick = briefs[Math.floor(Math.random() * briefs.length)];
+  document.getElementById("brief-title").textContent = pick[0];
+  document.getElementById("brief-copy").textContent = pick[1];
+});
+
+document.getElementById("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  document.getElementById("toast").textContent = "Held. This is a demo, so no email left the building.";
+  e.target.reset();
+});
+
+function tick() {
+  const now = new Date();
+  const t = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: false }).format(now);
+  document.getElementById("clock").textContent = "SURAT · " + t;
+  document.getElementById("foot-time").textContent = "Asia/Kolkata · " + t;
+}
+tick(); setInterval(tick, 10000);
+
+const canvas = document.getElementById("lights");
+const ctx = canvas.getContext("2d");
+const dots = Array.from({ length: 48 }, () => ({
+  x: Math.random(), y: Math.random(),
+  r: 8 + Math.random() * 28,
+  s: .15 + Math.random() * .45,
+  hue: Math.random() > .7 ? 18 : Math.random() > .5 ? 72 : 168
+}));
+function resize() {
+  canvas.width = canvas.offsetWidth * devicePixelRatio;
+  canvas.height = canvas.offsetHeight * devicePixelRatio;
+}
+resize(); addEventListener("resize", resize);
+function draw(t) {
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  dots.forEach((d, i) => {
+    const x = (d.x + Math.sin(t / 1800 + i) * .04) * w;
+    const y = ((d.y + t / 9000 * d.s) % 1) * h;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, d.r * devicePixelRatio);
+    g.addColorStop(0, `hsla(${d.hue}, 90%, 62%, .85)`);
+    g.addColorStop(1, `hsla(${d.hue}, 90%, 50%, 0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, d.r * devicePixelRatio, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
